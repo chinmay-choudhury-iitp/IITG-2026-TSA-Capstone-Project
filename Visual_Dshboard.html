@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TSA 2026 Capstone — NSE Stock Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f3f4f8;--card:#fff;--border:#e3e6ee;--text:#1a1f36;--text2:#5a6178;--text3:#8b90a0;--blue:#2563eb;--green:#059669;--red:#dc2626;--amber:#d97706;--radius:16px;--shadow:0 2px 12px rgba(30,40,80,.07)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
+
+/* HEADER */
+.hd{background:linear-gradient(135deg,#1e293b 0%,#1e3a5f 50%,#1e293b 100%);padding:20px 40px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.hd h1{font-size:1.2rem;font-weight:800;color:#fff;letter-spacing:-.4px;display:flex;align-items:center;gap:10px}
+.hd .tag{font-size:.6rem;font-weight:700;background:rgba(96,165,250,.2);color:#93c5fd;padding:4px 12px;border-radius:20px;letter-spacing:.5px;border:1px solid rgba(96,165,250,.3)}
+.hd .sub{font-size:.75rem;color:#94a3b8;font-weight:500}
+.hd .nm{font-weight:600;color:#e2e8f0}
+
+/* TABS */
+.tabs{display:flex;background:var(--card);border-bottom:1px solid var(--border);padding:0 40px;overflow-x:auto;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.tbtn{padding:14px 24px;font-size:.82rem;font-weight:600;color:var(--text3);border:none;background:none;cursor:pointer;position:relative;transition:all .25s;white-space:nowrap}
+.tbtn:hover{color:var(--blue)}
+.tbtn.on{color:var(--blue)}
+.tbtn.on::after{content:'';position:absolute;bottom:0;left:10px;right:10px;height:3px;background:linear-gradient(90deg,var(--blue),#60a5fa);border-radius:3px 3px 0 0}
+
+/* PANELS */
+.pn{display:none;padding:28px 40px 40px;max-width:1320px;margin:0 auto;animation:fi .35s ease}
+.pn.on{display:block}
+@keyframes fi{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* METRIC CARDS */
+.mg{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px;margin-bottom:26px}
+.mc{background:var(--card);border-radius:var(--radius);padding:22px 24px;box-shadow:var(--shadow);border:1px solid var(--border);position:relative;overflow:hidden;transition:transform .2s,box-shadow .2s}
+.mc:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(30,40,80,.1)}
+.mc::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%;border-radius:4px 0 0 4px}
+.mc.bl::before{background:var(--blue)}.mc.gr::before{background:var(--green)}.mc.rd::before{background:var(--red)}.mc.gy::before{background:#9ca3af}
+.mc .ico{font-size:1.3rem;margin-bottom:6px}
+.mc .lb{font-size:.68rem;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px}
+.mc .vl{font-size:1.5rem;font-weight:800;letter-spacing:-.5px}
+.mc .vl.g{color:var(--green)}.mc .vl.b{color:var(--blue)}.mc .vl.r{color:var(--red)}.mc .vl.a{color:var(--amber)}
+.mc .st{font-size:.7rem;color:var(--text3);margin-top:4px}
+
+/* CARDS */
+.rw{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:22px}
+.cd{background:var(--card);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow);border:1px solid var(--border);transition:box-shadow .2s}
+.cd:hover{box-shadow:0 4px 16px rgba(30,40,80,.1)}
+.cd h3{font-size:.88rem;font-weight:700;color:var(--text);margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.cd h3 .dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.cd canvas{width:100%!important;height:280px!important}
+.fw{grid-column:1/-1}
+
+/* TABLE */
+table.dt{width:100%;border-collapse:collapse;font-size:.84rem}
+table.dt th{text-align:left;padding:11px 14px;font-size:.7rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;border-bottom:2px solid var(--border);background:#f8f9fc}
+table.dt td{padding:12px 14px;border-bottom:1px solid #f0f2f7;font-variant-numeric:tabular-nums}
+table.dt tbody tr{transition:background .15s}
+table.dt tbody tr:hover{background:#f8f9fc}
+table.dt tr.ok td{background:#f0fdf4}table.dt tr.ok:hover td{background:#dcfce7}
+table.dt tr.bad td{background:#fef2f2}table.dt tr.bad:hover td{background:#fee2e2}
+.bdg{display:inline-flex;align-items:center;gap:4px;padding:4px 12px;border-radius:8px;font-weight:700;font-size:.72rem}
+.bdg.ok{background:#dcfce7;color:#166534}.bdg.bad{background:#fee2e2;color:#991b1b}
+
+/* CHIPS */
+.chips{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.chip{padding:9px 18px;border-radius:10px;font-size:.8rem;font-weight:600;background:#eef4ff;color:#1e40af;border:1px solid #bfdbfe;transition:transform .15s}
+.chip:hover{transform:scale(1.03)}
+
+/* AVG */
+.avg{margin-top:16px;font-size:.92rem;font-weight:700;color:var(--text);padding:12px 16px;background:#f0f7ff;border-radius:10px;border:1px solid #bfdbfe}
+.avg em{color:var(--blue);font-style:normal;font-size:1.1rem}
+
+/* FOOTER */
+.ft{text-align:center;padding:24px;color:var(--text3);font-size:.72rem;border-top:1px solid var(--border);margin-top:8px;background:var(--card)}
+
+@media(max-width:840px){.rw{grid-template-columns:1fr}.tabs{padding:0 14px}.pn{padding:20px 16px}.hd{padding:16px 18px}}
+</style>
+</head>
+<body>
+
+<header class="hd">
+<div><h1>📊 Time Series Analysis <span class="tag">CAPSTONE 2026</span></h1>
+<span class="sub">IIT Guwahati · Consulting &amp; Analytics Club × StockGro</span></div>
+<div style="text-align:right"><span class="nm">Chinmay Choudhury</span><br><span class="sub">IIT Patna</span></div>
+</header>
+
+<nav class="tabs" role="tablist">
+<button class="tbtn on" onclick="sw(0)">📋 Portfolio Overview</button>
+<button class="tbtn" onclick="sw(1)">📊 Model Comparison</button>
+<button class="tbtn" onclick="sw(2)">🎯 Live Forecast vs Actual</button>
+<button class="tbtn" onclick="sw(3)">⚡ Volatility &amp; Risk</button>
+</nav>
+
+<!-- TAB 0 -->
+<section class="pn on" id="p0">
+<div class="mg">
+<div class="mc bl"><div class="ico">💰</div><div class="lb">Total Capital</div><div class="vl b">₹10,00,000</div><div class="st">Fully deployed across 5 stocks</div></div>
+<div class="mc gr"><div class="ico">📈</div><div class="lb">Portfolio Return</div><div class="vl g">+1.02%</div><div class="st">May 14–15, 2026</div></div>
+<div class="mc gr"><div class="ico">💹</div><div class="lb">Profit / Loss</div><div class="vl g">+₹10,163</div><div class="st">Over 2 trading days</div></div>
+<div class="mc bl"><div class="ico">🎯</div><div class="lb">Live Directional Accuracy</div><div class="vl b">4 / 5</div><div class="st">80% correct predictions</div></div>
+</div>
+<div class="rw">
+<div class="cd"><h3><span class="dot" style="background:var(--blue)"></span>Portfolio Allocation by Stock</h3><canvas id="c0a"></canvas></div>
+<div class="cd"><h3><span class="dot" style="background:var(--green)"></span>Sector-wise Allocation</h3><canvas id="c0b"></canvas></div>
+</div>
+<div class="cd">
+<h3>📋 Stock-level Allocation Detail</h3>
+<table class="dt"><thead><tr><th>Stock</th><th>Sector</th><th>Weight</th><th>Allocated (₹)</th></tr></thead>
+<tbody>
+<tr><td><b>INFY</b></td><td>IT</td><td><b>54.89%</b></td><td>₹5,48,871</td></tr>
+<tr><td><b>MARUTI</b></td><td>Auto</td><td><b>19.85%</b></td><td>₹1,98,525</td></tr>
+<tr><td><b>RELIANCE</b></td><td>Energy</td><td><b>15.66%</b></td><td>₹1,56,570</td></tr>
+<tr><td><b>SUNPHARMA</b></td><td>Pharma</td><td><b>13.51%</b></td><td>₹1,35,069</td></tr>
+<tr><td><b>HDFCBANK</b></td><td>Banking</td><td><b>7.15%</b></td><td>₹71,489</td></tr>
+</tbody></table>
+</div>
+</section>
+
+<!-- TAB 1 -->
+<section class="pn" id="p1">
+<div class="mg">
+<div class="mc bl"><div class="ico">🏆</div><div class="lb">Best Model (MAPE)</div><div class="vl b">ARIMA</div><div class="st">Wins all 5 stocks</div></div>
+<div class="mc gr"><div class="ico">✅</div><div class="lb">Avg ARIMA MAPE</div><div class="vl g">1.28%</div><div class="st">Test set</div></div>
+<div class="mc rd"><div class="ico">⚠️</div><div class="lb">Avg Prophet MAPE</div><div class="vl r">9.95%</div><div class="st">Test set</div></div>
+<div class="mc gy"><div class="ico">🤖</div><div class="lb">Avg LSTM MAPE</div><div class="vl a">4.23%</div><div class="st">Test set</div></div>
+</div>
+<div class="rw"><div class="cd fw"><h3>📉 MAPE (%) — Lower is Better</h3><canvas id="c1a"></canvas></div></div>
+<div class="rw"><div class="cd fw"><h3>🎯 Directional Accuracy (%) — Higher is Better</h3><canvas id="c1b"></canvas></div></div>
+<div class="cd">
+<h3>🏆 Best Model per Stock (by MAPE)</h3>
+<div class="chips">
+<div class="chip">HDFCBANK → ARIMA (1.23%)</div>
+<div class="chip">INFY → ARIMA (1.58%)</div>
+<div class="chip">MARUTI → ARIMA (1.09%)</div>
+<div class="chip">RELIANCE → ARIMA (1.15%)</div>
+<div class="chip">SUNPHARMA → ARIMA (1.35%)</div>
+</div>
+</div>
+</section>
+
+<!-- TAB 2 -->
+<section class="pn" id="p2">
+<div class="mg">
+<div class="mc gr"><div class="ico">📊</div><div class="lb">Avg Live MAPE</div><div class="vl g">0.91%</div><div class="st">2-day window</div></div>
+<div class="mc gr"><div class="ico">🎯</div><div class="lb">Directional Accuracy</div><div class="vl g">4 / 5</div><div class="st">80%</div></div>
+<div class="mc gr"><div class="ico">⭐</div><div class="lb">Best Stock</div><div class="vl g">SUNPHARMA</div><div class="st">MAPE 0.22%</div></div>
+<div class="mc rd"><div class="ico">❌</div><div class="lb">Only Miss</div><div class="vl r">RELIANCE</div><div class="st">Wrong direction</div></div>
+</div>
+<div class="cd" style="margin-bottom:22px;overflow-x:auto">
+<h3>🔮 Live ARIMA Forecast — May 14–15, 2026</h3>
+<table class="dt" style="margin-top:10px">
+<thead><tr><th>Stock</th><th>Predicted (₹)</th><th>Actual D1 (₹)</th><th>Actual D2 (₹)</th><th>MAPE</th><th>Direction</th></tr></thead>
+<tbody>
+<tr class="ok"><td><b>HDFCBANK</b></td><td>759.28</td><td>759.28</td><td>762.63</td><td>0.45%</td><td><span class="bdg ok">✔ CORRECT</span></td></tr>
+<tr class="ok"><td><b>INFY</b></td><td>1,085.41</td><td>1,085.41</td><td>1,106.86</td><td>1.98%</td><td><span class="bdg ok">✔ CORRECT</span></td></tr>
+<tr class="ok"><td><b>SUNPHARMA</b></td><td>1,845.28</td><td>1,845.28</td><td>1,849.30</td><td>0.22%</td><td><span class="bdg ok">✔ CORRECT</span></td></tr>
+<tr class="bad"><td><b>RELIANCE</b></td><td>1,338.49</td><td>1,338.49</td><td>1,321.81</td><td>1.25%</td><td><span class="bdg bad">✘ WRONG</span></td></tr>
+<tr class="ok"><td><b>MARUTI</b></td><td>12,901.16</td><td>12,901.16</td><td>12,988.44</td><td>0.67%</td><td><span class="bdg ok">✔ CORRECT</span></td></tr>
+</tbody></table>
+<p class="avg">Average Live MAPE: <em>0.91%</em></p>
+</div>
+<div class="rw"><div class="cd fw"><h3>📊 Predicted vs Actual (Day 2) Prices</h3><canvas id="c2a"></canvas></div></div>
+</section>
+
+<!-- TAB 3 -->
+<section class="pn" id="p3">
+<div class="mg">
+<div class="mc gr"><div class="ico">🛡️</div><div class="lb">Lowest GARCH Vol</div><div class="vl g">SUNPHARMA</div><div class="st">1.25%</div></div>
+<div class="mc rd"><div class="ico">🔥</div><div class="lb">Highest GARCH Vol</div><div class="vl r">HDFCBANK</div><div class="st">2.36%</div></div>
+<div class="mc gr"><div class="ico">⭐</div><div class="lb">Best Risk-Adjusted</div><div class="vl g">SUNPHARMA</div><div class="st">+521.5% return, 20.24% vol</div></div>
+<div class="mc rd"><div class="ico">📉</div><div class="lb">Worst Return</div><div class="vl r">INFY</div><div class="st">−1.3% over period</div></div>
+</div>
+<div class="rw">
+<div class="cd"><h3>🔬 GARCH(1,1) Predicted Volatility (%)</h3><canvas id="c3a"></canvas></div>
+<div class="cd"><h3>📈 Annualised Rolling Volatility 2021–26 (%)</h3><canvas id="c3b"></canvas></div>
+</div>
+<div class="rw"><div class="cd fw"><h3>💡 Risk vs Return — Bubble Chart</h3><canvas id="c3c"></canvas></div></div>
+</section>
+
+<footer class="ft">TSA 2026 Capstone · IIT Guwahati — Consulting & Analytics Club × StockGro · Built with Chart.js</footer>
+
+<!-- Tab switching defined BEFORE Chart.js -->
+<script>
+var pns=document.querySelectorAll('.pn'),btns=document.querySelectorAll('.tbtn');
+function sw(i){for(var j=0;j<pns.length;j++){pns[j].className=j===i?'pn on':'pn';btns[j].className=j===i?'tbtn on':'tbtn'}if(typeof initCharts==='function')initCharts(i)}
+</script>
+<!-- Chart.js: 3 CDN fallbacks -->
+<script>
+(function(){
+var urls=['https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js','https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js','https://unpkg.com/chart.js@4.4.1/dist/chart.umd.js'];
+var idx=0;
+function tryLoad(){if(idx>=urls.length){document.querySelectorAll('canvas').forEach(function(c){c.parentElement.insertAdjacentHTML('afterbegin','<p style="color:#dc2626;font-size:13px;padding:8px;background:#fef2f2;border-radius:8px;margin-bottom:8px">⚠ Chart.js failed to load. Check internet and reload.</p>')});return}var s=document.createElement('script');s.src=urls[idx];s.onload=function(){go()};s.onerror=function(){idx++;tryLoad()};document.body.appendChild(s)}
+tryLoad();
+function go(){
+if(typeof Chart==='undefined')return;
+Chart.defaults.font.family='Inter,system-ui,sans-serif';Chart.defaults.font.size=12;
+Chart.defaults.plugins.legend.labels.usePointStyle=true;Chart.defaults.plugins.legend.labels.pointStyleWidth=10;Chart.defaults.plugins.legend.labels.padding=14;
+var G={color:'#eef0f4'},K={HD:'#2563eb',IN:'#8b5cf6',MA:'#f59e0b',RE:'#10b981',SU:'#ef4444'},sC=[K.IN,K.MA,K.RE,K.SU,K.HD],s5=['HDFCBANK','INFY','MARUTI','RELIANCE','SUNPHARMA'],c5=[K.HD,K.IN,K.MA,K.RE,K.SU],done=[false,false,false,false];
+window.initCharts=function(i){if(done[i])return;done[i]=true;try{bld(i)}catch(e){console.error(e)}setTimeout(function(){Object.values(Chart.instances).forEach(function(c){c.resize()})},100)};
+function bld(i){
+if(i===0){
+new Chart(document.getElementById('c0a'),{type:'doughnut',data:{labels:['INFY 54.89%','MARUTI 19.85%','RELIANCE 15.66%','SUNPHARMA 13.51%','HDFCBANK 7.15%'],datasets:[{data:[54.89,19.85,15.66,13.51,7.15],backgroundColor:sC,borderWidth:3,borderColor:'#fff',hoverOffset:14,hoverBorderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'62%',plugins:{legend:{position:'right',labels:{font:{size:11,weight:'500'}}},tooltip:{callbacks:{label:function(c){var v=['₹5,48,871','₹1,98,525','₹1,56,570','₹1,35,069','₹71,489'];return' '+c.parsed+'% — '+v[c.dataIndex]}}}}}});
+new Chart(document.getElementById('c0b'),{type:'bar',data:{labels:['IT','Auto','Energy','Pharma','Banking'],datasets:[{label:'Allocation %',data:[54.89,19.85,15.66,13.51,7.15],backgroundColor:sC,borderRadius:8,maxBarThickness:48}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:G,ticks:{callback:function(v){return v+'%'},font:{weight:'500'}}},x:{grid:{display:false},ticks:{font:{weight:'600'}}}}}})
+}
+if(i===1){
+new Chart(document.getElementById('c1a'),{type:'bar',data:{labels:s5,datasets:[{label:'ARIMA',data:[1.23,1.58,1.09,1.15,1.35],backgroundColor:'#2563eb',borderRadius:5,maxBarThickness:32},{label:'Prophet',data:[15.56,3.28,17.49,8.54,4.87],backgroundColor:'#f59e0b',borderRadius:5,maxBarThickness:32},{label:'LSTM',data:[1.32,10.25,3.25,2.89,3.46],backgroundColor:'#ef4444',borderRadius:5,maxBarThickness:32}]},options:{responsive:true,maintainAspectRatio:false,scales:{y:{beginAtZero:true,grid:G,ticks:{callback:function(v){return v+'%'}}},x:{grid:{display:false}}}}});
+new Chart(document.getElementById('c1b'),{type:'bar',data:{labels:s5,datasets:[{label:'ARIMA',data:[38.1,42.9,47.6,52.4,47.6],backgroundColor:'#2563eb',borderRadius:5,maxBarThickness:32},{label:'Prophet',data:[38.1,47.6,42.9,47.6,42.9],backgroundColor:'#f59e0b',borderRadius:5,maxBarThickness:32},{label:'LSTM',data:[47.6,52.4,38.1,38.1,57.1],backgroundColor:'#ef4444',borderRadius:5,maxBarThickness:32}]},options:{responsive:true,maintainAspectRatio:false,scales:{y:{beginAtZero:true,max:70,grid:G,ticks:{callback:function(v){return v+'%'}}},x:{grid:{display:false}}}}})
+}
+if(i===2){
+new Chart(document.getElementById('c2a'),{type:'bar',data:{labels:['HDFCBANK','INFY','SUNPHARMA','RELIANCE','MARUTI'],datasets:[{label:'Predicted (May 14)',data:[759.28,1085.41,1845.28,1338.49,12901.16],backgroundColor:'#2563eb',borderRadius:6,maxBarThickness:36},{label:'Actual (May 15)',data:[762.63,1106.86,1849.30,1321.81,12988.44],backgroundColor:'#10b981',borderRadius:6,maxBarThickness:36}]},options:{responsive:true,maintainAspectRatio:false,scales:{y:{beginAtZero:false,grid:G,ticks:{callback:function(v){return '₹'+v.toLocaleString('en-IN')}}},x:{grid:{display:false}}}}})
+}
+if(i===3){
+new Chart(document.getElementById('c3a'),{type:'bar',data:{labels:s5,datasets:[{label:'GARCH Vol %',data:[2.36,1.52,1.99,1.75,1.25],backgroundColor:c5,borderRadius:8,maxBarThickness:26}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,grid:G,ticks:{callback:function(v){return v+'%'}}},y:{grid:{display:false},ticks:{font:{weight:'600'}}}}}});
+new Chart(document.getElementById('c3b'),{type:'bar',data:{labels:s5,datasets:[{label:'Annual Vol %',data:[20.34,23.66,22.39,21.98,20.24],backgroundColor:c5,borderRadius:8,maxBarThickness:40}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:G,ticks:{callback:function(v){return v+'%'}}},x:{grid:{display:false},ticks:{font:{weight:'600'}}}}}});
+new Chart(document.getElementById('c3c'),{type:'bubble',data:{datasets:[{label:'HDFCBANK',data:[{x:20.34,y:14,r:15}],backgroundColor:K.HD+'bb',borderColor:K.HD,borderWidth:2},{label:'INFY',data:[{x:23.66,y:-1.3,r:15}],backgroundColor:K.IN+'bb',borderColor:K.IN,borderWidth:2},{label:'SUNPHARMA',data:[{x:20.24,y:521.5,r:24}],backgroundColor:K.SU+'bb',borderColor:K.SU,borderWidth:2},{label:'RELIANCE',data:[{x:21.98,y:51.1,r:17}],backgroundColor:K.RE+'bb',borderColor:K.RE,borderWidth:2},{label:'MARUTI',data:[{x:22.39,y:77.4,r:18}],backgroundColor:K.MA+'bb',borderColor:K.MA,borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,scales:{x:{title:{display:true,text:'Annualised Volatility (%)',font:{weight:'700',size:13}},grid:G},y:{title:{display:true,text:'Return (%)',font:{weight:'700',size:13}},grid:G}},plugins:{tooltip:{callbacks:{label:function(c){return c.dataset.label+': Vol '+c.parsed.x+'%, Return '+c.parsed.y+'%'}}}}}})
+}
+}
+done[0]=true;bld(0)
+}
+})();
+</script>
+</body>
+</html>
