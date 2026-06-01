@@ -24,7 +24,7 @@ IITG-2026-TSA-Capstone-Project/
 ├── Visual_Dashboard.html          # Interactive dashboard (bonus deliverable)
 │
 ├── README.md                      # This file
-└── TSA_Capstone_project_PS.pdf            # Original problem statement
+└── PS.pdf    # Original problem statement
 ```
 
 ---
