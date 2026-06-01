@@ -1,4 +1,4 @@
-# 📈 Time Series Analysis Capstone Project 2026
+# Time Series Analysis Capstone Project 2026
 ### Data-Driven Stock Forecasting & Virtual Portfolio Management on the NSE
 
 > **IIT Guwahati — Consulting & Analytics Club × StockGro**
@@ -17,7 +17,7 @@ This project applies a complete time series forecasting pipeline to manage a vir
 ## Repository Structure
 
 ```
-tsa-capstone-project-2026/
+IITG-2026-TSA-Capstone-Project/
 │
 ├── Python_Notebook.ipynb          # Full pipeline: fetch → preprocess → model → forecast → portfolio
 ├── Report.pdf                     # Final capstone project report (10 pages)
